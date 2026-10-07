@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const registerSchema = z.object({
+export const registerSchemaValidator = z.object({
     username: z
         .string()
         .trim()
@@ -24,7 +24,7 @@ export const registerSchema = z.object({
 });
 
 
-export const loginSchema = z.object({
+export const loginSchemaValidator = z.object({
     email: z
         .string()
         .trim()
