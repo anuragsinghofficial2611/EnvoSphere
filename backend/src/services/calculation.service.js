@@ -1,3 +1,4 @@
+
 const GPU_DATA = {
     "NVIDIA H100": {
         tdp: 700
@@ -20,75 +21,83 @@ const GPU_DATA = {
     }
 };
 
-
 const calculateEnvironmentalImpact = ({
     facilityArea,
     gpuModel,
     gpuCount,
     hoursUsed,
-    renewableEnergy,
+    renewableEnergyPercent,
     pue,
     wue
 }) => {
+    const renewableEnergy = renewableEnergyPercent;
     const gpu = GPU_DATA[gpuModel];
 
     if (!gpu) {
         throw new Error(`Unsupported GPU model: ${gpuModel}`);
     }
-    const totalGpuPowerWatts = gpu.tdp * gpuCount;
-    const totalGpuPowerKW = totalGpuPowerWatts / 1000;
-    const itEnergyKWh = totalGpuPowerKW * hoursUsed;
-    const facilityEnergyKWh = itEnergyKWh * pue;
-    const renewableEnergyKWh = facilityEnergyKWh * (renewableEnergy / 100);
-    const gridEnergyKWh = facilityEnergyKWh - renewableEnergyKWh;
-    const carbonIntensity = 0.72;
-    const co2EmissionsKg = gridEnergyKWh * carbonIntensity;
-    const heatBTUPerHour = totalGpuPowerKW * 3412.142;
-    const waterConsumptionLitres = itEnergyKWh * wue;
 
-    const energyIntensityKWhPerM2 = facilityArea > 0 ? facilityEnergyKWh / facilityArea : 0;
-    const carbonIntensityKgPerM2 = facilityArea > 0 ? co2EmissionsKg / facilityArea : 0;
+    // GPU power
+    const gpuPowerWatts = gpu.tdp * gpuCount;
+    const gpuPowerKw = gpuPowerWatts / 1000;
 
+    // Energy consumption
+    const itEnergyKwh = gpuPowerKw * hoursUsed;
+    const facilityEnergyKwh = itEnergyKwh * pue;
+
+    // Renewable and grid energy
+    const renewableEnergyKwh =
+        facilityEnergyKwh * (renewableEnergy / 100);
+
+    const gridEnergyKwh =
+        facilityEnergyKwh - renewableEnergyKwh;
+
+    // Carbon emissions
+    const carbonIntensityKgPerKwh = 0.72;
+
+    const co2EmissionsKg =
+        gridEnergyKwh * carbonIntensityKgPerKwh;
+
+    // Heat output
+    const heatKw = gpuPowerKw;
+    const heatBtuPerHour = gpuPowerKw * 3412.142;
+
+    // Water consumption
+    const waterConsumptionLitres = itEnergyKwh * wue;
+
+    // Facility-area intensities
+    const energyIntensityKwhPerM2 =
+        facilityArea > 0
+            ? facilityEnergyKwh / facilityArea
+            : 0;
+
+    const carbonIntensityKgPerM2 =
+        facilityArea > 0
+            ? co2EmissionsKg / facilityArea
+            : 0;
+
+    // Return the exact structure expected by the database model
     return {
-        gpu: {
-            model: gpuModel,
-            tdpWatts: gpu.tdp,
-            count: gpuCount,
-            totalPowerWatts: totalGpuPowerWatts,
-            totalPowerKW: totalGpuPowerKW
+        assumptions: {
+            gpuTdpWatts: gpu.tdp,
+            carbonIntensityKgPerKwh
         },
 
-        energy: {
-            itEnergyKWh: itEnergyKWh,
-            facilityEnergyKWh: facilityEnergyKWh,
-            renewableEnergyKWh: renewableEnergyKWh,
-            gridEnergyKWh: gridEnergyKWh
-        },
-
-        emissions: {
-            carbonIntensityKgPerKWh: carbonIntensity,
-            co2EmissionsKg: co2EmissionsKg
-        },
-
-        heat: {
-            heatBTUPerHour: heatBTUPerHour
-        },
-
-        water: {
-            wue: wue,
-            waterConsumptionLitres: waterConsumptionLitres
-        },
-
-        efficiency: {
-            pue: pue,
-            energyIntensityKWhPerM2:
-                energyIntensityKWhPerM2,
-
-            carbonIntensityKgPerM2:
-                carbonIntensityKgPerM2
+        results: {
+            gpuPowerWatts,
+            gpuPowerKw,
+            itEnergyKwh,
+            facilityEnergyKwh,
+            renewableEnergyKwh,
+            gridEnergyKwh,
+            co2EmissionsKg,
+            heatKw,
+            heatBtuPerHour,
+            waterConsumptionLitres,
+            energyIntensityKwhPerM2,
+            carbonIntensityKgPerM2
         }
     };
 };
-
 
 export default calculateEnvironmentalImpact;

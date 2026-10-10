@@ -1,7 +1,7 @@
 import express from 'express';
-import authRoute from './routes/auth.routes';
-import calculationRoute from './routes/calculation.routes';
-import errorHandler from './middlewares/error.middleware';
+import authRoute from './routes/auth.routes.js';
+import calculationRoute from './routes/calculation.routes.js';
+import errorHandler from './middlewares/error.middleware.js';
 
 const app = express();
 

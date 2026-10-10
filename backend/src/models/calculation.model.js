@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const calculationSchema = new mongoose.Schema(
@@ -41,7 +42,6 @@ const calculationSchema = new mongoose.Schema(
                 max: 100,
             },
 
-            //remove later if i will not take this from user
             pue: {
                 type: Number,
                 required: true,
@@ -75,7 +75,6 @@ const calculationSchema = new mongoose.Schema(
                 type: String,
             },
 
-            // assumption only have to make when user will not give these data
             pueSource: {
                 type: String,
                 trim: true,
@@ -86,7 +85,6 @@ const calculationSchema = new mongoose.Schema(
                 trim: true,
             },
         },
-    ]
 
         results: {
             gpuPowerWatts: {
@@ -148,7 +146,12 @@ const calculationSchema = new mongoose.Schema(
                 type: Number,
                 required: true,
             },
-        }
+        },
+
+        // aiAnalysis: {
+        //     type: String,
+        //     default: null,
+        // },
 
         // calculationVersion: {
         //     type: String,

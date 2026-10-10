@@ -4,7 +4,7 @@ import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-export const registerUser = asyncHandler(async (req, res) => {
+const registerUser = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
 
     const existingUser = await User.findOne({
@@ -20,7 +20,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     const user = await User.create({
         username,
         email,
-        password: hashedPassword
+        passwordHash: hashedPassword
     });
 
     const createdUser = await User.findById(user._id).select("-password");
@@ -33,7 +33,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 });
 
 
-export const LoginUser = asyncHandler(async (req, res) => {
+const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
@@ -44,7 +44,7 @@ export const LoginUser = asyncHandler(async (req, res) => {
 
     const isPasswordValid = await bcrypt.compare(
         password,
-        user.password
+        user.passwordHash
     );
 
     if (!isPasswordValid) {
@@ -67,6 +67,9 @@ export const LoginUser = asyncHandler(async (req, res) => {
         success: true,
         message: "Login successful",
         token,
+        id: user._id
         // user: loggedInUser
     });
 });
+
+export { loginUser,registerUser };

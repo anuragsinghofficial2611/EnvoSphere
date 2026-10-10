@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const calculationSchema = z.object({
+const calculationSchema = z.object({
 
     facilityArea: z
         .number({
@@ -44,21 +44,20 @@ export const calculationSchema = z.object({
             error: "WUE must be a number",
         })
         .nonnegative("WUE cannot be negative"),
-
-    location: z.object({
-        country: z
-            .string()
-            .trim()
-            .min(1, "Country is required"),
-
-        state: z
-            .string()
-            .trim()
-            .optional(),
-
-        city: z
-            .string()
-            .trim()
-            .optional(),
-    }),
 });
+const validate = (schema) => (req, res, next) => {
+    const result = schema.safeParse(req.body);
+
+    if (!result.success) {
+        return res.status(400).json({
+            success: false,
+            message: "Validation failed",
+            errors: result.error.flatten(),
+        });
+    }
+
+    req.body = result.data;
+    next();
+};
+
+export const calculationSchemaValidator = validate(calculationSchema);
