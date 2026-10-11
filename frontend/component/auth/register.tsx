@@ -23,7 +23,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -42,10 +42,20 @@ export default function RegisterPage() {
       setError("Passwords do not match.");
       return;
     }
-
-    // Connect your existing registration API here.
-    // Show success only after the server confirms registration.
-    setError("Registration API is not connected yet.");
+    const response = await fetch('/api/auth/register',{
+      method: "POST",
+      body: JSON.stringify({name,email,password}),
+      headers: {
+        "Content-type": "application/json"
+      }
+    });
+    const data = await response.json();
+    if(!response.ok){
+      console.log("error occured in response");
+      setError(data);
+    }
+    setError(data);
+    console.log(data);
   }
 
   return (

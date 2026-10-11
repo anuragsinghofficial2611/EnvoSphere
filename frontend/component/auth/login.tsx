@@ -18,12 +18,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
 
-    // Connect your existing login API here.
-    // Do not redirect until the server confirms authentication.
+    const response = await fetch('/api/auth/login',{
+      method : "POST",
+      body: JSON.stringify({email,password}),
+      headers:{
+        "Content-type" : "application/json"
+      }
+    });
+    const data = await response.json();
+    if(!response){
+      console.log("error occured in response ",data);
+      return;
+    }
+    console.log(data);
+    
     setError("Login API is not connected yet.");
   }
 
@@ -162,7 +174,7 @@ export default function LoginPage() {
                     />
                     <input
                       id="password"
-                      name="password"
+                      name="password" 
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       placeholder="Enter your password"
