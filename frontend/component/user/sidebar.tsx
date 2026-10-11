@@ -39,13 +39,8 @@ const navigation = [
 
 const accountNavigation = [
   {
-    label: "Settings",
-    href: "/profile/settings",
-    icon: Settings,
-  },
-  {
     label: "Profile",
-    href: "/profile/account",
+    href: "/user/profile",
     icon: UserRound,
   },
 ];
