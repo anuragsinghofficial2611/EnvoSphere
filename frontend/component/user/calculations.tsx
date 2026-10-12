@@ -36,6 +36,7 @@ type Calculation = {
   gridEnergy: number;
   heat: number;
   status: string;
+  aiAnalysis: string;
 };
 
 const numberFormat = new Intl.NumberFormat("en-IN", {
@@ -104,6 +105,10 @@ export default function CalculationsPage() {
           gridEnergy: item.results.gridEnergyKwh ?? 0,
           heat: item.results.heatKw ?? 0,
           status: "Completed",
+          aiAnalysis:
+            typeof item.aiAnalysis === "string"
+              ? item.aiAnalysis
+              : item.aiAnalysis?.analysis ?? null,
         }))
       );
     } catch (error) {
@@ -322,8 +327,8 @@ export default function CalculationsPage() {
                   aria-current={currentPage === n ? "page" : undefined}
                   onClick={() => setPage(n)}
                   className={`h-9 min-w-9 rounded-lg px-3 text-sm font-medium ${currentPage === n
-                      ? "bg-emerald-800 text-white"
-                      : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    ? "bg-emerald-800 text-white"
+                    : "border border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                 >
                   {n}
@@ -382,6 +387,7 @@ export default function CalculationsPage() {
                     <CalendarDays size={13} />
                     {selected.date} · {selected.timestamp}
                   </p>
+
                 </div>
               </div>
 
@@ -394,6 +400,23 @@ export default function CalculationsPage() {
                 <X size={20} />
               </button>
             </div>
+            <section className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+              <h3 className="mb-2 font-semibold text-slate-900">
+                AI Analysis
+              </h3>
+              <p>
+
+                {selected.aiAnalysis ? (
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                    {selected.aiAnalysis}
+                  </p>
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    AI analysis is not available for this calculation.
+                  </p>
+                )}
+              </p>
+            </section>
 
             <div className="space-y-6 p-5 sm:p-7">
               <section>
