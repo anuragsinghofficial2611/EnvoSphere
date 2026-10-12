@@ -1,21 +1,25 @@
 <div align="center">
 
-# 🌍 EnvoSphere — Frontend
+# 🌍 EnvoSphere
 
-**A modern, responsive web client for monitoring, understanding, and acting on environmental data.**
+### Measure the real environmental cost of your GPU workloads.
 
-![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
-![Axios](https://img.shields.io/badge/Axios-REST_Client-5A29E4?style=for-the-badge&logo=axios&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)
+Estimate **energy use, CO₂ emissions, water consumption and heat output** for AI infrastructure — and keep a personal history of every calculation.
 
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-Express_5-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose_9-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+
+[Overview](#-overview) •
 [Features](#-features) •
+[Tech Stack](#-tech-stack) •
 [Architecture](#-architecture) •
-[API Integration](#-api-integration) •
 [Getting Started](#-getting-started) •
-[Project Structure](#-project-structure) •
-[Contributing](#-contributing)
+[API Reference](#-api-reference) •
+[Methodology](#-calculation-methodology)
 
 </div>
 
@@ -23,146 +27,128 @@
 
 ## 📖 Overview
 
-The **EnvoSphere frontend** is the user-facing layer of the EnvoSphere platform. It talks to a set of connected backend services over REST APIs, so every screen — dashboard, analytics, alerts, maps, and user profile — renders **live data** instead of static mock content.
+AI workloads run on power-hungry GPUs, and the environmental footprint of that compute is rarely visible to the people running it. **EnvoSphere** makes it visible.
 
-Everything the user sees flows through one pipeline:
+You describe a workload — which GPU, how many, for how long, in what kind of facility, powered by how much renewable energy — and EnvoSphere turns it into clear, comparable numbers:
 
-```
-User Action → React UI → API Service Layer → Backend APIs → Database → Response → UI Update
-```
+| 🔌 Energy | 🏭 Carbon | 💧 Water | 🔥 Heat |
+| :---: | :---: | :---: | :---: |
+| IT and total facility energy (kWh) | CO₂ emitted from grid energy (kg) | Cooling water consumed (litres) | Thermal output (kW and BTU/h) |
+
+Every calculation is stored together with the **inputs and assumptions** that produced it, so results are transparent, reproducible and easy to revisit.
+
+> **Who is it for?** Students, researchers, ML engineers and data-center teams who want a quick, understandable estimate of what their GPU compute costs the planet.
 
 ---
 
 ## ✨ Features
 
-| | Feature | Description |
-|---|---|---|
-| 🔐 | **Authentication** | Register, login, logout, and persistent sessions with JWT |
-| 📊 | **Live Dashboard** | Real-time environmental metrics pulled from the backend |
-| 📈 | **Analytics & Charts** | Trends, comparisons, and historical data visualisation |
-| 🗺️ | **Interactive Maps** | Location-based environmental data and markers |
-| 🔔 | **Alerts & Notifications** | Instant alerts for threshold breaches and important events |
-| 👤 | **User Profile** | View and update account details and preferences |
-| 🌗 | **Light / Dark Mode** | Theme toggle with saved preference |
-| 📱 | **Fully Responsive** | Optimised for mobile, tablet, and desktop |
-| ⚡ | **Fast & Lightweight** | Vite-powered dev server and optimised production builds |
+- 🧮 **Environmental impact calculator** — enter GPU model, GPU count, hours used, facility area, renewable-energy share, PUE and WUE
+- 📊 **Personal dashboard** — aggregated totals for emissions, energy, water and heat across all your calculations
+- 🗂️ **Calculation history** — browse, search and inspect every past calculation with its full breakdown
+- 🔐 **Secure authentication** — registration and login with bcrypt-hashed passwords and JWT sessions
+- 🍪 **HttpOnly cookie sessions** — the token is never exposed to browser JavaScript
+- 👤 **Per-user data isolation** — you can only ever read or delete your own data
+- ✅ **Schema validation** — every request body is validated with Zod before it touches business logic
+- 📱 **Responsive UI** — clean, accessible interface with a collapsible sidebar on mobile
+- 🧱 **Layered backend** — routes → validators → controllers → services → models
 
 ---
 
-## 🏗️ Architecture
+## 🛠 Tech Stack
 
-All backend communication goes through a single, centralised API layer. Components never call `fetch` or `axios` directly.
+### Frontend
+
+| Technology | Purpose |
+| --- | --- |
+| **Next.js 16** (App Router) | Framework, routing and server-side API proxy routes |
+| **React 19** + **TypeScript** | UI and type safety |
+| **Tailwind CSS 4** | Styling |
+| **Lucide React** | Icons |
+
+### Backend
+
+| Technology | Purpose |
+| --- | --- |
+| **Node.js** + **Express 5** | REST API |
+| **MongoDB** + **Mongoose 9** | Data storage |
+| **JSON Web Tokens** + **bcrypt** | Authentication and password hashing |
+| **Zod 4** | Request validation |
+| **dotenv**, **cors** | Configuration and cross-origin access |
+
+---
+
+## 🏗 Architecture
+
+EnvoSphere is a two-part application. The Next.js frontend never exposes the backend token to the browser — its own API routes act as a thin, authenticated proxy in front of the Express API.
 
 ```mermaid
 flowchart LR
-    A[👤 User] --> B[⚛️ React Components]
-    B --> C[🪝 Custom Hooks / Context]
-    C --> D[🔌 API Service Layer<br/>Axios Instance]
-    D -->|JWT in headers| E[🛡️ Auth API]
-    D --> F[📊 Data API]
-    D --> G[🔔 Alerts API]
-    D --> H[👤 User API]
-    E --> I[(🗄️ Database)]
-    F --> I
-    G --> I
-    H --> I
+    U([👤 User Browser]) --> P[Next.js Pages<br/>React UI]
+    P -->|fetch /api/user/...| R[Next.js API Routes<br/>cookie → Bearer token]
+    R -->|REST + JWT| A[Express API<br/>/api/v1]
+    A --> V[Zod Validators]
+    V --> C[Controllers]
+    C --> S[Calculation Service]
+    C --> M[(Mongoose Models)]
+    M --> D[(MongoDB)]
 ```
 
-**Key design decisions**
+**How a calculation flows through the system**
 
-- **Single Axios instance** with a request interceptor (attaches the JWT) and a response interceptor (handles `401` globally and redirects to login).
-- **Service modules per domain** (`authService`, `dataService`, `alertService`, `userService`) keep API logic out of components.
-- **Context + custom hooks** manage auth state and shared data across the app.
-- **Protected routes** block unauthenticated users from private pages.
+1. The user submits the calculator form.
+2. The Next.js API route reads the `token` HttpOnly cookie and forwards the request to Express with an `Authorization: Bearer` header.
+3. Express validates the body with Zod and verifies the JWT.
+4. The calculation service computes energy, CO₂, water and heat from the inputs and fixed assumptions.
+5. The inputs, assumptions and results are saved to MongoDB under the user's ID and returned to the UI.
 
 ---
 
-## 🔌 API Integration
+## 📂 Project Structure
 
-The frontend is wired to the following backend endpoints. All requests go through the base URL set in `VITE_API_BASE_URL`.
-
-### 🔐 Auth
-
-| Method | Endpoint | Purpose |
-|:---:|---|---|
-| `POST` | `/api/auth/register` | Create a new account |
-| `POST` | `/api/auth/login` | Log in and receive a JWT |
-| `POST` | `/api/auth/logout` | End the current session |
-| `GET` | `/api/auth/me` | Fetch the logged-in user |
-
-### 📊 Environmental Data
-
-| Method | Endpoint | Purpose |
-|:---:|---|---|
-| `GET` | `/api/data/current` | Latest readings for the dashboard |
-| `GET` | `/api/data/history` | Historical data for charts |
-| `GET` | `/api/data/locations` | Locations and map markers |
-| `GET` | `/api/data/summary` | Aggregated stats and insights |
-
-### 🔔 Alerts
-
-| Method | Endpoint | Purpose |
-|:---:|---|---|
-| `GET` | `/api/alerts` | List all alerts |
-| `PATCH` | `/api/alerts/:id/read` | Mark an alert as read |
-| `DELETE` | `/api/alerts/:id` | Dismiss an alert |
-
-### 👤 User
-
-| Method | Endpoint | Purpose |
-|:---:|---|---|
-| `GET` | `/api/users/profile` | Get profile details |
-| `PUT` | `/api/users/profile` | Update profile details |
-| `PUT` | `/api/users/preferences` | Save user preferences |
-
-### Example: API service layer
-
-```js
-// src/services/api.js
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 10000,
-});
-
-// Attach JWT to every request
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-// Global session-expiry handling
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    }
-    return Promise.reject(err);
-  }
-);
-
-export default api;
+```text
+EnvoSphere/
+├── frontend/                          # Next.js application
+│   ├── app/
+│   │   ├── page.tsx                   # Public landing page
+│   │   ├── auth/
+│   │   │   ├── login/page.tsx
+│   │   │   └── register/page.tsx
+│   │   ├── user/                      # Authenticated area (sidebar layout)
+│   │   │   ├── dashboard/page.tsx
+│   │   │   ├── calculator/page.tsx
+│   │   │   ├── calculations/page.tsx
+│   │   │   ├── comparisons/page.tsx
+│   │   │   └── profile/page.tsx
+│   │   └── api/                       # Server-side proxy to the Express API
+│   │       ├── auth/{login,register}/route.ts
+│   │       └── user/
+│   │           ├── dashboard/route.ts
+│   │           ├── profile/route.ts
+│   │           └── calculation/{create,calculations}/route.ts
+│   ├── component/
+│   │   ├── public/main.tsx            # Landing page
+│   │   ├── auth/                      # Login and register forms
+│   │   └── user/                      # Sidebar, dashboard, calculator, history, profile
+│   └── package.json
+│
+└── backend/                           # Express REST API
+    ├── src/
+    │   ├── config/                    # Database connection, env config
+    │   ├── constants/                 # GPU and environmental reference data
+    │   ├── controllers/               # auth, calculation, dashboard, user
+    │   ├── middlewares/               # JWT auth, validation, error handling
+    │   ├── models/                    # User and Calculation schemas
+    │   ├── routes/                    # auth, calculation, user routes
+    │   ├── services/                  # Calculation engine (formulas)
+    │   ├── utils/                     # ApiError, asyncHandler
+    │   ├── validators/                # Zod schemas
+    │   ├── app.js                     # Express app setup
+    │   └── server.js                  # Entry point
+    ├── tests/                         # unit/ and integration/
+    ├── .env.example
+    └── package.json
 ```
-
----
-
-## 🛠️ Tech Stack
-
-| Category | Technology |
-|---|---|
-| **Framework** | React 18 |
-| **Build Tool** | Vite |
-| **Styling** | Tailwind CSS |
-| **Routing** | React Router |
-| **HTTP Client** | Axios |
-| **State** | React Context API + custom hooks |
-| **Charts** | Recharts / Chart.js |
-| **Maps** | Leaflet |
-| **Icons** | Lucide React |
 
 ---
 
@@ -170,169 +156,311 @@ export default api;
 
 ### Prerequisites
 
-- **Node.js** v18 or higher
-- **npm** v9+ (or yarn / pnpm)
-- The **EnvoSphere backend** running locally or deployed
+- [Node.js](https://nodejs.org/) **v20+**
+- npm (bundled with Node.js)
+- [MongoDB](https://www.mongodb.com/) — a local instance or a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/anuragsinghofficial2611/EnvoSphere.git
-cd EnvoSphere/frontend
+git clone https://github.com/<your-username>/EnvoSphere.git
+cd EnvoSphere
 ```
 
-### 2. Install dependencies
+### 2. Set up the backend
 
 ```bash
+cd backend
 npm install
-```
-
-### 3. Configure environment variables
-
-Create a `.env` file in the `frontend` folder:
-
-```env
-VITE_API_BASE_URL=http://localhost:5000
-```
-
-### 4. Start the development server
-
-```bash
+cp .env.example .env      # then fill in the values below
 npm run dev
 ```
 
-The app runs at **http://localhost:5173**.
+`backend/.env`
 
-### 5. Build for production
+```env
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/envosphere
+JWT_SECRET=replace_with_a_long_random_string
+FRONTEND_URL=http://localhost:3000
+```
+
+The API starts at **http://localhost:5000**.
+
+### 3. Set up the frontend
+
+Open a second terminal:
 
 ```bash
-npm run build
-npm run preview
+cd frontend
+npm install
+npm run dev
 ```
 
----
+`frontend/.env.local`
 
-## 📜 Available Scripts
-
-| Command | Description |
-|---|---|
-| `npm run dev` | Start the development server with hot reload |
-| `npm run build` | Create an optimised production build in `dist/` |
-| `npm run preview` | Preview the production build locally |
-| `npm run lint` | Run ESLint across the project |
-
----
-
-## 🔑 Environment Variables
-
-| Variable | Required | Description | Example |
-|---|:---:|---|---|
-| `VITE_API_BASE_URL` | ✅ | Base URL of the backend API | `http://localhost:5000` |
-
-> ⚠️ Never commit your `.env` file. Only variables prefixed with `VITE_` are exposed to the browser, so never place secrets in them.
-
----
-
-## 📁 Project Structure
-
-```
-frontend/
-├── public/                  # Static assets
-├── src/
-│   ├── assets/              # Images, icons, fonts
-│   ├── components/          # Reusable UI components
-│   │   ├── common/          # Buttons, inputs, modals, loaders
-│   │   ├── charts/          # Chart components
-│   │   └── layout/          # Navbar, sidebar, footer
-│   ├── context/             # Auth and theme context providers
-│   ├── hooks/               # Custom React hooks
-│   ├── pages/               # Route-level pages
-│   │   ├── Home
-│   │   ├── Login / Register
-│   │   ├── Dashboard
-│   │   ├── Analytics
-│   │   ├── Map
-│   │   ├── Alerts
-│   │   └── Profile
-│   ├── routes/              # Route config and protected routes
-│   ├── services/            # API layer (one file per domain)
-│   │   ├── api.js           # Axios instance + interceptors
-│   │   ├── authService.js
-│   │   ├── dataService.js
-│   │   ├── alertService.js
-│   │   └── userService.js
-│   ├── utils/               # Helpers and formatters
-│   ├── App.jsx
-│   └── main.jsx
-├── .env                     # Environment variables (not committed)
-├── index.html
-├── package.json
-├── tailwind.config.js
-└── vite.config.js
+```env
+API_URL=http://localhost:5000
+NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
+The app starts at **http://localhost:3000**.
+
+### 4. Use it
+
+1. Open `http://localhost:3000` and click **Get started** to create an account.
+2. Sign in and open the **Calculator**.
+3. Submit a workload and watch your **Dashboard** totals update.
+
+### Environment variables
+
+| Variable | Where | Required | Description |
+| --- | --- | :---: | --- |
+| `PORT` | backend | No | API port (defaults to `3000`; use `5000` locally to avoid clashing with Next.js) |
+| `MONGO_URI` | backend | ✅ | MongoDB connection string |
+| `JWT_SECRET` | backend | ✅ | Secret for signing and verifying JWTs |
+| `FRONTEND_URL` | backend | ✅ | Allowed CORS origin |
+| `API_URL` | frontend | ✅ | Base URL of the Express API, used by Next.js API routes |
+| `NEXT_PUBLIC_API_URL` | frontend | ✅ | Base URL of the Express API, used from the browser |
+
+> ⚠️ Never commit `.env` files. Generate a strong secret with:
+> `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
+
+### Scripts
+
+| Location | Command | Description |
+| --- | --- | --- |
+| `backend/` | `npm run dev` | Start the API with auto-reload (nodemon) |
+| `backend/` | `npm start` | Start the API in production mode |
+| `frontend/` | `npm run dev` | Start the Next.js dev server |
+| `frontend/` | `npm run build` | Create a production build |
+| `frontend/` | `npm start` | Serve the production build |
+| `frontend/` | `npm run lint` | Lint with ESLint |
+
 ---
 
-## 🔄 Data Flow Example
+## 📡 API Reference
 
-What happens when a user opens the dashboard:
+**Base URL:** `http://localhost:5000/api/v1`
 
-1. **Route guard** checks for a valid JWT, otherwise redirects to `/login`.
-2. **Dashboard page** mounts and calls `dataService.getCurrent()`.
-3. **Axios interceptor** attaches the token and sends `GET /api/data/current`.
-4. **Backend** validates the token, queries the database, and returns JSON.
-5. **UI** shows loading skeletons, then renders cards and charts with the response.
-6. **On error**, a toast is shown, and a `401` triggers an automatic logout.
+Protected routes (🔒) require:
+
+```http
+Authorization: Bearer <jwt>
+```
+
+| Method | Endpoint | Auth | Description |
+| :---: | --- | :---: | --- |
+| `POST` | `/auth/register` | — | Create an account |
+| `POST` | `/auth/login` | — | Log in and receive a JWT (valid for 1 day) |
+| `GET` | `/user/get` | 🔒 | Get the current user's profile |
+| `POST` | `/calculation/create` | 🔒 | Run and save a calculation |
+| `GET` | `/calculation/getall` | 🔒 | List all of the user's calculations (newest first) |
+| `GET` | `/calculation/get/:id` | 🔒 | Get one calculation |
+| `DELETE` | `/calculation/delete/:id` | 🔒 | Delete one calculation |
+| `GET` | `/calculation/dashboard` | 🔒 | Aggregated totals and averages |
+
+<details>
+<summary><b>📝 Register — <code>POST /auth/register</code></b></summary>
+
+```json
+{
+  "username": "eco_dev",
+  "email": "eco@example.com",
+  "password": "StrongPass123"
+}
+```
+
+| Field | Rules |
+| --- | --- |
+| `username` | 3–15 characters; letters, numbers and underscores |
+| `email` | Valid email, stored lowercase |
+| `password` | 8–72 characters |
+
+**Responses:** `201` created · `400` validation failed · `409` user already exists
+
+</details>
+
+<details>
+<summary><b>🔑 Login — <code>POST /auth/login</code></b></summary>
+
+```json
+{ "email": "eco@example.com", "password": "StrongPass123" }
+```
+
+```json
+{ "success": true, "message": "Login successful", "token": "<jwt>", "id": "665f1c2e..." }
+```
+
+**Responses:** `200` success · `401` invalid email or password
+
+</details>
+
+<details>
+<summary><b>🧮 Create calculation — <code>POST /calculation/create</code></b></summary>
+
+**Request**
+
+```json
+{
+  "facilityArea": 120,
+  "gpuModel": "NVIDIA H100",
+  "gpuCount": 8,
+  "hoursUsed": 72,
+  "renewableEnergyPercent": 30,
+  "pue": 1.4,
+  "wue": 1.8
+}
+```
+
+| Field | Type | Rules |
+| --- | --- | --- |
+| `facilityArea` | number | > 0 (m²) |
+| `gpuModel` | string | One of the [supported GPUs](#supported-gpu-models) |
+| `gpuCount` | integer | > 0 |
+| `hoursUsed` | number | > 0 |
+| `renewableEnergyPercent` | number | 0–100 |
+| `pue` | number | ≥ 1 — Power Usage Effectiveness |
+| `wue` | number | ≥ 0 — Water Usage Effectiveness (L/kWh) |
+
+**Response — `201 Created`**
+
+```json
+{
+  "success": true,
+  "message": "Environmental impact calculated and saved successfully",
+  "data": {
+    "inputs": { "...": "as submitted" },
+    "assumptions": { "gpuTdpWatts": 700, "carbonIntensityKgPerKwh": 0.72 },
+    "results": {
+      "gpuPowerWatts": 5600,
+      "gpuPowerKw": 5.6,
+      "itEnergyKwh": 403.2,
+      "facilityEnergyKwh": 564.48,
+      "renewableEnergyKwh": 169.344,
+      "gridEnergyKwh": 395.136,
+      "co2EmissionsKg": 284.4979,
+      "heatKw": 5.6,
+      "heatBtuPerHour": 19107.9952,
+      "waterConsumptionLitres": 725.76,
+      "energyIntensityKwhPerM2": 4.704,
+      "carbonIntensityKgPerM2": 2.3708
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><b>📊 Dashboard summary — <code>GET /calculation/dashboard</code></b></summary>
+
+Returns totals across all of the user's calculations: number of calculations, emissions, water, facility energy, IT energy and heat, plus average PUE and WUE. A user with no calculations receives zeroed values.
+
+</details>
+
+**Error format** — every failure returns the same shape:
+
+```json
+{ "success": false, "message": "Human-readable message", "errors": [] }
+```
+
+| Status | Meaning |
+| :---: | --- |
+| `400` | Validation failed |
+| `401` | Missing, invalid or expired token |
+| `404` | Resource not found |
+| `409` | Conflict (e.g. user already exists) |
+| `500` | Unexpected server error |
 
 ---
 
-## 🧪 Error & Loading Handling
+## 🧬 Calculation Methodology
 
-- ⏳ **Loading states** with skeletons or spinners on every data-driven view
-- ❌ **Error states** with a clear message and a retry button
-- 📭 **Empty states** when an API returns no data
-- 🔁 **Global handling** of expired sessions via the Axios interceptor
+All formulas live in [`backend/src/services/calculation.service.js`](backend/src/services/calculation.service.js).
+
+| Metric | Formula |
+| --- | --- |
+| GPU power (W) | `TDP × gpuCount` |
+| IT energy (kWh) | `GPU power (kW) × hoursUsed` |
+| Facility energy (kWh) | `IT energy × PUE` |
+| Renewable energy (kWh) | `Facility energy × renewable % / 100` |
+| Grid energy (kWh) | `Facility energy − Renewable energy` |
+| **CO₂ emissions (kg)** | `Grid energy × 0.72` |
+| Heat output (kW) | `GPU power (kW)` |
+| Heat output (BTU/h) | `GPU power (kW) × 3412.142` |
+| **Water use (litres)** | `IT energy × WUE` |
+| Energy intensity | `Facility energy / facilityArea` (kWh/m²) |
+| Carbon intensity | `CO₂ emissions / facilityArea` (kg/m²) |
+
+**Assumptions:** grid carbon intensity of `0.72 kg CO₂/kWh`, and GPUs running at their rated TDP.
+
+### Supported GPU models
+
+| GPU | TDP (W) |
+| --- | ---: |
+| NVIDIA H100 | 700 |
+| NVIDIA A100 | 400 |
+| NVIDIA L40S | 350 |
+| NVIDIA RTX 6000 Ada | 300 |
+| NVIDIA T4 | 70 |
+
+> ℹ️ Results are **estimates for awareness and comparison**, not certified emissions reporting.
 
 ---
 
-## 🌐 Deployment
+## 🗄 Data Models
 
-The frontend builds to static files and can be hosted anywhere.
+**User** — `username` (unique), `email` (unique, lowercase), `passwordHash` (bcrypt, never returned), `role` (`user` / `admin`), `isActive`, timestamps.
 
-| Platform | Steps |
-|---|---|
-| **Vercel** | Import the repo, set root to `frontend`, add `VITE_API_BASE_URL`, deploy |
-| **Netlify** | Build command `npm run build`, publish directory `dist`, add env variable |
-| **GitHub Pages** | Build, then publish the `dist/` folder |
+**Calculation** — `user` (reference, indexed), `inputs`, `assumptions`, `results`, timestamps.
 
-> Remember to add your deployed frontend URL to the backend's CORS allow-list.
+---
+
+## 🔒 Security
+
+- Passwords are hashed with **bcrypt** (10 salt rounds); plain text is never stored
+- **JWTs** expire after 1 day
+- The session token lives in an **HttpOnly, SameSite=Lax cookie** (`Secure` in production)
+- Request bodies are validated with **Zod** before processing
+- Calculations are always queried by both `_id` **and** `user`, so one user can never access another's data
+- **CORS** is restricted to the configured frontend origin
+- Secrets are loaded from environment variables and excluded from version control
+
+---
+
+## 🗺 Roadmap
+
+- [ ] AI-generated summaries and efficiency recommendations
+- [ ] Side-by-side comparison of calculations and facilities
+- [ ] Editable user profile
+- [ ] Automated unit and integration tests
+- [ ] Rate limiting and security headers (`express-rate-limit`, `helmet`)
+- [ ] OpenAPI / Swagger documentation
+- [ ] Docker setup and CI/CD
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome!
+Contributions are welcome.
 
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
-3. **Commit** your changes: `git commit -m "feat: add amazing feature"`
-4. **Push** the branch: `git push origin feature/amazing-feature`
-5. **Open** a Pull Request
+1. Fork the repository
+2. Create a branch: `git checkout -b feature/your-feature`
+3. Commit: `git commit -m "feat: add your feature"`
+4. Push: `git push origin feature/your-feature`
+5. Open a Pull Request
 
-Please follow the existing code style and run `npm run lint` before submitting.
+Please keep the backend's layered structure (routes → validators → controllers → services → models).
 
 ---
 
 ## 📄 License
 
-Distributed under the **MIT License**. See `LICENSE` for details.
-
----
+Distributed under the **ISC License**.
 
 <div align="center">
 
-**Built with 💚 for a greener planet**
-
-⭐ If you like this project, give it a star!
+**Smaller footprint. Smarter compute.** 🌱
 
 </div>
