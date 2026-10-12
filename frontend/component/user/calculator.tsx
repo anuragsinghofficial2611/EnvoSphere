@@ -16,9 +16,9 @@ import {
 } from "lucide-react";
 
 const gpuModels = [
-  { label: "NVIDIA H100", value: "H100", watts: 700 },
-  { label: "NVIDIA A100", value: "A100", watts: 400 },
-  { label: "NVIDIA L40S", value: "L40S", watts: 350 },
+  { label: "NVIDIA H100", value: "NVIDIA H100", watts: 700 },
+  { label: "NVIDIA A100", value: "NVIDIA A100", watts: 400 },
+  { label: "NVIDIA L40S", value: "NVIDIA L40S", watts: 350 },
   { label: "NVIDIA RTX 6000 Ada", value: "RTX 6000 Ada", watts: 300 },
   { label: "NVIDIA T4", value: "T4", watts: 70 },
 ];
