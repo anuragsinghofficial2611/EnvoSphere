@@ -145,9 +145,10 @@ export default function DashboardPage() {
       }
       console.log(data);
         setCalculations(
-       data.data.map((item: any) => ({
+       data.data.data.map((item: any) => ({
         id: item._id,
-        date: new Date(item.createdAt).toLocaleDateString("en-IN"),
+        // date: new Date(item.createdAt).toLocaleDateString("en-IN"),
+        date: item.updatedAt,
         facility: item.inputs.gpuModel,
         emissions: item.results.co2EmissionsKg.toFixed(2),
         status: "Completed",

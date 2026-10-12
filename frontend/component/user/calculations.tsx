@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Leaf,
   Search,
@@ -38,94 +38,9 @@ type Calculation = {
   status: string;
 };
 
-const calculations: Calculation[] = [
-  {
-    id: "CAL-001",
-    facility: "Data Center A",
-    date: "Apr 28, 2025",
-    timestamp: "10:24 AM",
-    period: "April 2025",
-    emissions: 2.8,
-    energy: 48320,
-    water: 1280,
-    area: 1000,
-    gpuModel: "NVIDIA H100",
-    gpuCount: 8,
-    hoursUsed: 24,
-    renewablePercent: 60,
-    pue: 1.4,
-    wue: 0.2,
-    itEnergy: 34514,
-    gridEnergy: 19328,
-    heat: 3.92,
-    status: "Completed",
-  },
-  {
-    id: "CAL-002",
-    facility: "Data Center B",
-    date: "Apr 25, 2025",
-    timestamp: "02:16 PM",
-    period: "April 2025",
-    emissions: 4.1,
-    energy: 72640,
-    water: 2040,
-    area: 1800,
-    gpuModel: "NVIDIA A100",
-    gpuCount: 16,
-    hoursUsed: 22,
-    renewablePercent: 45,
-    pue: 1.5,
-    wue: 0.3,
-    itEnergy: 48427,
-    gridEnergy: 39952,
-    heat: 5.2,
-    status: "Completed",
-  },
-  {
-    id: "CAL-003",
-    facility: "Research Lab",
-    date: "Apr 20, 2025",
-    timestamp: "11:03 AM",
-    period: "April 2025",
-    emissions: 1.2,
-    energy: 21560,
-    water: 620,
-    area: 600,
-    gpuModel: "NVIDIA L40S",
-    gpuCount: 8,
-    hoursUsed: 12,
-    renewablePercent: 70,
-    pue: 1.3,
-    wue: 0.2,
-    itEnergy: 16585,
-    gridEnergy: 6468,
-    heat: 1.96,
-    status: "Completed",
-  },
-  {
-    id: "CAL-004",
-    facility: "Main Campus",
-    date: "Apr 15, 2025",
-    timestamp: "09:45 AM",
-    period: "April 2025",
-    emissions: 3.6,
-    energy: 65200,
-    water: 1860,
-    area: 1400,
-    gpuModel: "NVIDIA H100",
-    gpuCount: 12,
-    hoursUsed: 18,
-    renewablePercent: 55,
-    pue: 1.4,
-    wue: 0.25,
-    itEnergy: 46571,
-    gridEnergy: 29340,
-    heat: 5.88,
-    status: "Completed",
-  },
-];
-
-const numberFormat = new Intl.NumberFormat("en-US");
+const numberFormat = new Intl.NumberFormat("en-IN", {
+  maximumFractionDigits: 2,
+});
 
 function DetailRow({
   label,
@@ -145,14 +60,64 @@ function DetailRow({
 }
 
 export default function CalculationsPage() {
-  
+  const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState("All Time");
   const [selected, setSelected] = useState<Calculation | null>(null);
   const [page, setPage] = useState(1);
-
+  const [loading, setLoading] = useState(true);
 
   const pageSize = 5;
+
+  const getCalculations = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch("/api/user/calculation/calculations");
+      const body = await response.json();
+
+      console.log(body);
+
+      const calculationsData = body.data.data;
+
+      setCalculations(
+        calculationsData.map((item: any) => ({
+          id: item._id,
+          facility: item.inputs.gpuModel,
+          date: new Date(item.createdAt).toLocaleDateString(),
+          timestamp: new Date(item.createdAt).toLocaleTimeString(),
+          period: new Date(item.createdAt).toLocaleString("en-US", {
+            month: "long",
+            year: "numeric",
+          }),
+          emissions: item.results.co2EmissionsKg ?? 0,
+          energy: item.results.facilityEnergyKwh ?? 0,
+          water: item.results.waterConsumptionLitres ?? 0,
+          area: item.inputs.facilityArea ?? 0,
+          gpuModel: item.inputs.gpuModel,
+          gpuCount: item.inputs.gpuCount,
+          hoursUsed: item.inputs.hoursUsed,
+          renewablePercent: item.inputs.renewableEnergyPercent,
+          pue: item.inputs.pue,
+          wue: item.inputs.wue,
+          itEnergy: item.results.itEnergyKwh ?? 0,
+          gridEnergy: item.results.gridEnergyKwh ?? 0,
+          heat: item.results.heatKw ?? 0,
+          status: "Completed",
+        }))
+      );
+
+      setCalculations(mappedCalculations);
+    } catch (error) {
+      console.error("Failed to fetch calculations:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getCalculations();
+  }, []);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -169,7 +134,7 @@ export default function CalculationsPage() {
 
       return matchesSearch && matchesPeriod;
     });
-  }, [search, period]);
+  }, [calculations, search, period]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -182,7 +147,6 @@ export default function CalculationsPage() {
   return (
     <main className="min-h-screen bg-white text-slate-800">
       <div className="mx-auto max-w-[1400px] px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
-        {/* Page heading and filters */}
         <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="mb-3 flex items-center gap-2 text-emerald-800">
@@ -226,11 +190,14 @@ export default function CalculationsPage() {
                   setPage(1);
                 }}
                 aria-label="Filter by time period"
-                className="w-full appearance-none rounded-lg border border-slate-200 bg-white py-3 pl-4 pr-10 text-sm text-slate-700 outline-none focus:border-emerald-600 sm:w-[155px]"
+                className="w-full appearance-none rounded-lg border border-slate-200 bg-white py-3 pl-4 pr-10 text-sm text-slate-700 outline-none focus:border-emerald-600 sm:w-[180px]"
               >
                 <option>All Time</option>
-                <option>April 2025</option>
-                <option>March 2025</option>
+                {[...new Set(calculations.map((item) => item.period))].map(
+                  (item) => (
+                    <option key={item}>{item}</option>
+                  )
+                )}
               </select>
               <ChevronDown
                 size={15}
@@ -240,137 +207,143 @@ export default function CalculationsPage() {
           </div>
         </div>
 
-        {/* Calculation cards */}
         <section aria-label="Saved calculations" className="space-y-3">
-          {visible.map((item) => (
-            <article
-              key={item.id}
-              className="rounded-xl border border-slate-200 bg-white p-5 transition hover:border-emerald-200 sm:px-6 sm:py-6"
-            >
-              <div className="grid grid-cols-1 items-center gap-5 xl:grid-cols-[minmax(190px,1.5fr)_minmax(110px,0.7fr)_minmax(110px,0.7fr)_minmax(100px,0.7fr)_auto]">
-                <div className="flex min-w-0 items-center gap-3.5">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-800">
-                    <FileText size={20} />
-                  </div>
-                  <div className="min-w-0">
-                    <h2 className="truncate text-sm font-semibold text-slate-800">
-                      {item.facility}
-                    </h2>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {item.date} · {item.timestamp}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    {item.emissions.toFixed(1)}{" "}
-                    <span className="text-xs font-medium">tCO₂e</span>
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">Emissions</p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    {numberFormat.format(item.energy)}{" "}
-                    <span className="text-xs font-medium">kWh</span>
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">Energy</p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    {numberFormat.format(item.water)}{" "}
-                    <span className="text-xs font-medium">m³</span>
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">Water</p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setSelected(item)}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-50"
-                >
-                  View Details
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-            </article>
-          ))}
-
-          {visible.length === 0 && (
-            <div className="rounded-xl border border-dashed border-slate-300 px-5 py-16 text-center">
-              <Search size={28} className="mx-auto mb-3 text-slate-400" />
-              <h2 className="font-medium text-slate-800">
-                No calculations found
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Try a different search term or time period.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setPeriod("All Time");
-                  setPage(1);
-                }}
-                className="mt-4 text-sm font-medium text-emerald-800 hover:underline"
-              >
-                Clear filters
-              </button>
+          {loading ? (
+            <div className="py-16 text-center text-sm text-slate-500">
+              Loading calculations...
             </div>
+          ) : (
+            <>
+              {visible.map((item) => (
+                <article
+                  key={item.id}
+                  className="rounded-xl border border-slate-200 bg-white p-5 transition hover:border-emerald-200 sm:px-6 sm:py-6"
+                >
+                  <div className="grid grid-cols-1 items-center gap-5 xl:grid-cols-[minmax(190px,1.5fr)_minmax(110px,0.7fr)_minmax(110px,0.7fr)_minmax(100px,0.7fr)_auto]">
+                    <div className="flex min-w-0 items-center gap-3.5">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-800">
+                        <FileText size={20} />
+                      </div>
+                      <div className="min-w-0">
+                        <h2 className="truncate text-sm font-semibold text-slate-800">
+                          {item.facility}
+                        </h2>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {item.date} · {item.timestamp}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        {numberFormat.format(item.emissions)}{" "}
+                        <span className="text-xs font-medium">kg CO₂e</span>
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">Emissions</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        {numberFormat.format(item.energy)}{" "}
+                        <span className="text-xs font-medium">kWh</span>
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">Energy</p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        {numberFormat.format(item.water)}{" "}
+                        <span className="text-xs font-medium">L</span>
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">Water</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelected(item)}
+                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-50"
+                    >
+                      View Details
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </article>
+              ))}
+
+              {visible.length === 0 && (
+                <div className="rounded-xl border border-dashed border-slate-300 px-5 py-16 text-center">
+                  <Search size={28} className="mx-auto mb-3 text-slate-400" />
+                  <h2 className="font-medium text-slate-800">
+                    No calculations found
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Try a different search term or time period.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearch("");
+                      setPeriod("All Time");
+                      setPage(1);
+                    }}
+                    className="mt-4 text-sm font-medium text-emerald-800 hover:underline"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
 
-        {/* Pagination */}
-        <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-500">
-            Showing{" "}
-            {filtered.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}
-            –
-            {Math.min(currentPage * pageSize, filtered.length)} of{" "}
-            {filtered.length}
-          </p>
+        {!loading && (
+          <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-slate-500">
+              Showing{" "}
+              {filtered.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}–
+              {Math.min(currentPage * pageSize, filtered.length)} of{" "}
+              {filtered.length}
+            </p>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Previous page"
-              disabled={currentPage === 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-            >
-              <ChevronLeft size={17} />
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+            <div className="flex items-center gap-2">
               <button
-                key={n}
                 type="button"
-                aria-label={`Page ${n}`}
-                aria-current={currentPage === n ? "page" : undefined}
-                onClick={() => setPage(n)}
-                className={`h-9 min-w-9 rounded-lg px-3 text-sm font-medium ${
-                  currentPage === n
-                    ? "bg-emerald-800 text-white"
-                    : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
+                aria-label="Previous page"
+                disabled={currentPage === 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
               >
-                {n}
+                <ChevronLeft size={17} />
               </button>
-            ))}
 
-            <button
-              type="button"
-              aria-label="Next page"
-              disabled={currentPage === totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-            >
-              <ChevronRight size={17} />
-            </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  aria-label={`Page ${n}`}
+                  aria-current={currentPage === n ? "page" : undefined}
+                  onClick={() => setPage(n)}
+                  className={`h-9 min-w-9 rounded-lg px-3 text-sm font-medium ${currentPage === n
+                      ? "bg-emerald-800 text-white"
+                      : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                >
+                  {n}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                aria-label="Next page"
+                disabled={currentPage === totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              >
+                <ChevronRight size={17} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         <footer className="mt-8 border-t border-slate-100 pt-5">
           <p className="text-xs text-slate-400">
@@ -379,7 +352,6 @@ export default function CalculationsPage() {
         </footer>
       </div>
 
-      {/* Details modal */}
       {selected && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-[2px]"
@@ -434,10 +406,10 @@ export default function CalculationsPage() {
                   <div className="rounded-xl border border-slate-200 p-4">
                     <Leaf size={19} className="mb-3 text-emerald-700" />
                     <p className="text-xl font-semibold text-slate-900">
-                      {selected.emissions.toFixed(1)}
+                      {numberFormat.format(selected.emissions)}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
-                      Emissions (tCO₂e)
+                      Emissions (kg CO₂e)
                     </p>
                   </div>
                   <div className="rounded-xl border border-slate-200 p-4">
@@ -452,7 +424,7 @@ export default function CalculationsPage() {
                     <p className="text-xl font-semibold text-slate-900">
                       {numberFormat.format(selected.water)}
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">Water (m³)</p>
+                    <p className="mt-1 text-xs text-slate-500">Water (litres)</p>
                   </div>
                 </div>
               </section>
@@ -462,7 +434,10 @@ export default function CalculationsPage() {
                   Facility &amp; Hardware
                 </h3>
                 <div className="rounded-xl border border-slate-200 px-4">
-                  <DetailRow label="Facility area" value={`${selected.area} m²`} />
+                  <DetailRow
+                    label="Facility area"
+                    value={`${selected.area} m²`}
+                  />
                   <DetailRow label="GPU model" value={selected.gpuModel} />
                   <DetailRow label="GPU count" value={selected.gpuCount} />
                   <DetailRow
@@ -481,7 +456,10 @@ export default function CalculationsPage() {
                     label="Renewable energy"
                     value={`${selected.renewablePercent}%`}
                   />
-                  <DetailRow label="Power Usage Effectiveness (PUE)" value={selected.pue} />
+                  <DetailRow
+                    label="Power Usage Effectiveness (PUE)"
+                    value={selected.pue}
+                  />
                   <DetailRow
                     label="Water Usage Effectiveness (WUE)"
                     value={`${selected.wue} L/kWh`}
@@ -504,18 +482,19 @@ export default function CalculationsPage() {
                   />
                   <DetailRow
                     label="Heat output"
-                    value={`${selected.heat.toFixed(2)} kW`}
+                    value={`${numberFormat.format(selected.heat)} kW`}
                   />
                   <DetailRow label="Status" value={selected.status} />
                 </div>
               </section>
 
               <div className="flex items-start gap-2 rounded-lg bg-emerald-50 p-3.5">
-                <Activity size={17} className="mt-0.5 shrink-0 text-emerald-800" />
+                <Activity
+                  size={17}
+                  className="mt-0.5 shrink-0 text-emerald-800"
+                />
                 <p className="text-xs leading-5 text-emerald-900">
-                  These details belong to the selected calculation. Replace
-                  the sample records with your backend data when integrating
-                  the API.
+                  These details are retrieved from your saved calculation.
                 </p>
               </div>
             </div>

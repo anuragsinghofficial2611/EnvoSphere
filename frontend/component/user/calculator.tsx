@@ -25,7 +25,7 @@ const gpuModels = [
 
 const initialForm = {
   facilityArea: "1000",
-  gpuModel: "H100",
+  gpuModel: "NVIDIA H100",
   gpuCount: "8",
   hoursUsed: "24",
   renewableEnergyPercent: "60",
@@ -58,6 +58,7 @@ export default function ImpactCalculatorPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
+
 
   function updateField(field: keyof FormValues, value: string) {
     setForm((previous) => ({ ...previous, [field]: value }));
@@ -103,8 +104,9 @@ export default function ImpactCalculatorPage() {
     setLoading(true);
 
     try {
+      console.log('sending this data ', facilityArea,form.gpuModel,gpuCount,hoursUsed,renewableEnergyPercent,pue,wue);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/calculations`,
+        `/api/user/calculation/create`,
         {
           method: "POST",
           headers: {
@@ -112,7 +114,6 @@ export default function ImpactCalculatorPage() {
           },
           credentials: "include",
           body: JSON.stringify({
-            inputs: {
               facilityArea,
               gpuModel: form.gpuModel,
               gpuCount,
@@ -120,7 +121,6 @@ export default function ImpactCalculatorPage() {
               renewableEnergyPercent,
               pue,
               wue,
-            },
           }),
         }
       );
@@ -130,7 +130,7 @@ export default function ImpactCalculatorPage() {
       if (!response.ok) {
         throw new Error(data.message || "Failed to calculate impact.");
       }
-
+      console.log(data);
       setResult(data.data ?? data);
     } catch (err) {
       setError(
@@ -163,7 +163,7 @@ export default function ImpactCalculatorPage() {
             </span>
           </Link>
 
-          <div className="hidden max-w-md flex-1 md:block">
+          {/* <div className="hidden max-w-md flex-1 md:block">
             <label className="relative block">
               <Activity
                 size={17}
@@ -176,16 +176,16 @@ export default function ImpactCalculatorPage() {
                 className="w-full rounded-lg border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-emerald-600 focus:bg-white"
               />
             </label>
-          </div>
+          </div> */}
 
-          <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+          {/* <div className="flex shrink-0 items-center gap-3 sm:gap-4">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-800">
               <Leaf size={17} />
             </div>
             <span className="hidden text-sm font-medium text-slate-700 sm:block">
               Anurag Singh
             </span>
-          </div>
+          </div> */}
         </div>
       </header>
 
