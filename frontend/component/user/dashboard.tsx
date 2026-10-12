@@ -84,10 +84,10 @@ export default function DashboardPage() {
       icon: Droplets,
     },
     {
-      title: "Total Heat Generated",
+      title: "Total Heat Generated per hour",
       value: heat,
-      unit: "kWh",
-      icon: Leaf,
+      unit: "BTU/hour",
+      icon: Trees,
     },
   ];
 
@@ -135,7 +135,7 @@ export default function DashboardPage() {
       setCo2emmission(data?.data?.data?.totalEmissionsKgCO2e);
       setEnergy(data?.data.data?.totalEnergyKwh);
       setWaterusage(data?.data?.data?.totalWaterLiters);
-      setHeat(data?.data?.data?.totalHeatKwh);
+      setHeat(data?.data?.data?.totalHeatBtuPerHour);
 
     } catch (error) {
       console.log(error);
