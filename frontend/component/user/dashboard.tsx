@@ -21,7 +21,13 @@ import { useState, useEffect } from 'react';
 
 
 
-
+type Calculation = {
+  id: string;
+  date: string;
+  facility: string;
+  emissions: string;
+  status: string;
+};
 
 const actions = [
   {
@@ -115,7 +121,7 @@ export default function DashboardPage() {
   //     status: "Completed",
   //   },
   // ];
-  const [calculations , setCalculations] = useState([]);
+  const [calculations , setCalculations] = useState<Calculation[]>([]);;
 
   const getData = async () => {
     try {
@@ -198,7 +204,7 @@ export default function DashboardPage() {
         >
           {stats.map((stat) => {
             const Icon = stat.icon;
-            const isPositive = stat.trend === "up";
+            // const isPositive = stat.trend === "up";
 
             return (
               <article
@@ -228,14 +234,14 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="mt-5 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                  {/* <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                     {isPositive ? (
                       <ArrowUpRight size={14} />
                     ) : (
                       <ArrowDownRight size={14} />
                     )}
                     {stat.change}
-                  </span>
+                  </span> */}
 
                   <span className="text-xs text-slate-400">
                     vs. previous 30 days
@@ -289,9 +295,9 @@ export default function DashboardPage() {
                 </thead>
 
                 <tbody className="divide-y divide-slate-100">
-                  {calculations.map((calculation) => (
+                  {calculations && calculations.map((calculation) => (
                     <tr
-                      key={calculation.id}
+                      key={calculation?.id}
                       className="transition-colors hover:bg-slate-50/70"
                     >
                       <td className="whitespace-nowrap px-5 py-4 sm:px-6">

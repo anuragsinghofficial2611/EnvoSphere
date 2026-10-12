@@ -106,8 +106,6 @@ export default function CalculationsPage() {
           status: "Completed",
         }))
       );
-
-      setCalculations(mappedCalculations);
     } catch (error) {
       console.error("Failed to fetch calculations:", error);
     } finally {

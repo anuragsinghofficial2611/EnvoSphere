@@ -16,11 +16,43 @@ import {
 } from "lucide-react";
 
 const gpuModels = [
-  { label: "NVIDIA H100", value: "NVIDIA H100", watts: 700 },
   { label: "NVIDIA A100", value: "NVIDIA A100", watts: 400 },
+  { label: "NVIDIA A100 40GB", value: "NVIDIA A100 40GB", watts: 400 },
+  { label: "NVIDIA A100 80GB", value: "NVIDIA A100 80GB", watts: 400 },
+  { label: "NVIDIA H100", value: "NVIDIA H100", watts: 700 },
+  { label: "NVIDIA H100 SXM", value: "NVIDIA H100 SXM", watts: 700 },
+  { label: "NVIDIA H100 PCIe", value: "NVIDIA H100 PCIe", watts: 700 },
+  { label: "NVIDIA H200 SXM", value: "NVIDIA H200 SXM", watts: 700 },
+  { label: "NVIDIA H200 PCIe", value: "NVIDIA H200 PCIe", watts: 600 },
   { label: "NVIDIA L40S", value: "NVIDIA L40S", watts: 350 },
-  { label: "NVIDIA RTX 6000 Ada", value: "RTX 6000 Ada", watts: 300 },
-  { label: "NVIDIA T4", value: "T4", watts: 70 },
+  { label: "NVIDIA L40", value: "NVIDIA L40", watts: 350 },
+  { label: "NVIDIA A40", value: "NVIDIA A40", watts: 300 },
+  { label: "NVIDIA RTX A6000", value: "NVIDIA RTX A6000", watts: 300 },
+  { label: "NVIDIA RTX 6000 Ada", value: "NVIDIA RTX 6000 Ada", watts: 300 },
+  { label: "NVIDIA B100", value: "NVIDIA B100", watts: 700 },
+  { label: "NVIDIA B200", value: "NVIDIA B200", watts: 1000 },
+  { label: "NVIDIA GB200 NVL72", value: "NVIDIA GB200 NVL72", watts: 1200 },
+  { label: "NVIDIA RTX 4090", value: "NVIDIA RTX 4090", watts: 450 },
+  { label: "NVIDIA RTX 4080", value: "NVIDIA RTX 4080", watts: 320 },
+  { label: "NVIDIA RTX 4080 SUPER", value: "NVIDIA RTX 4080 SUPER", watts: 320 },
+  { label: "NVIDIA T4", value: "NVIDIA T4", watts: 70 },
+
+  // AMD Instinct accelerators
+  { label: "AMD MI100", value: "AMD MI100", watts: 300 },
+  { label: "AMD MI210", value: "AMD MI210", watts: 700 },
+  { label: "AMD MI250X", value: "AMD MI250X", watts: 560 },
+  { label: "AMD MI300X", value: "AMD MI300X", watts: 750 },
+  { label: "AMD MI300A", value: "AMD MI300A", watts: 760 },
+  { label: "AMD MI325X", value: "AMD MI325X", watts: 1000 },
+  { label: "AMD MI350X", value: "AMD MI350X", watts: 1000 },
+
+  // Cloud ASICs
+  { label: "GOOGLE TPU V5E", value: "GOOGLE TPU V5E", watts: 220 },
+  { label: "GOOGLE TPU V5P", value: "GOOGLE TPU V5P", watts: 280 },
+  { label: "AWS INFERENTIA2", value: "AWS INFERENTIA2", watts: 250 },
+  { label: "AWS INFERENTIA", value: "AWS INFERENTIA", watts: 90 },
+  { label: "AWS TRAINIUM", value: "AWS TRAINIUM", watts: 300 },
+  { label: "AWS TRAINIUM2", value: "AWS TRAINIUM2", watts: 245 },
 ];
 
 const initialForm = {
