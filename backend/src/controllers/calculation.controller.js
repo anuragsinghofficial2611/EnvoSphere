@@ -3,6 +3,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import Calculation from "../models/calculation.model.js";
 import calculateEnvironmentalImpact from "../services/calculation.service.js";
+import { generateAIAnalysis } from "../services/ai.service.js";
+import AIAnalysis from "../models/ai.model.js";
 
 const createCalculation = asyncHandler(async (req, res) => {
     const {
@@ -45,6 +47,14 @@ const createCalculation = asyncHandler(async (req, res) => {
     const calculationData = calculateEnvironmentalImpact(inputs);
     const { assumptions, results } = calculationData;
 
+    const aiAnalysis = await generateAIAnalysis(
+        {
+            inputs,
+            assumptions,
+            results
+        }
+    );
+
     const calculation = await Calculation.create({
         user: userId,
         inputs,
@@ -52,10 +62,18 @@ const createCalculation = asyncHandler(async (req, res) => {
         results
     });
 
+    const aiAnalysisresult = await AIAnalysis.create({
+        calculation: calculation._id,
+        user: userId,
+        analysis: aiAnalysis
+    });
     return res.status(201).json({
         success: true,
         message: "Environmental impact calculated and saved successfully",
-        data: calculation
+        data: {
+            ...calculation.toObject(),
+            aiAnalysis
+        }
     });
 });
 
@@ -67,12 +85,25 @@ const getAllCalculation = asyncHandler(async (req, res) => {
     }
 
     const calculations = await Calculation.find({ user: userId })
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 }).lean();
+
+    const aiAnalyses = await AIAnalysis.find({ user: userId }).lean();
+    const analysisMap = new Map(
+        aiAnalyses.map(item => [
+            item.calculation.toString(),
+            item.analysis
+        ])
+    );
+
+    const data = calculations.map(calculation => ({
+        ...calculation,
+        aiAnalysis: analysisMap.get(calculation._id.toString()) || null
+    }));
 
     return res.status(200).json({
         success: true,
-        count: calculations.length,
-        data: calculations
+        count: data.length,
+        data
     });
 });
 
@@ -87,15 +118,18 @@ const getCalculation = asyncHandler(async (req, res) => {
     const calculation = await Calculation.findOne({
         _id: id,
         user: userId
-    });
-
+    }).lean();
     if (!calculation) {
         throw new ApiError(404, "Calculation not found");
     }
+    const AiAnalysis = await AIAnalysis.findOne({ calculation: calculation._id, user: userId }).lean();
 
     return res.status(200).json({
         success: true,
-        data: calculation
+        data:{ 
+            ...calculation,
+            aiAnalysis: AiAnalysis?.analysis??null
+        }
     });
 });
 
@@ -106,7 +140,9 @@ const deleteCalculation = asyncHandler(async (req, res) => {
     if (!userId) {
         throw new ApiError(401, "User authentication required");
     }
-
+    const aiAnalysis = await AIAnalysis.findOneAndDelete({
+        calculation: id,
+    });
     const calculation = await Calculation.findOneAndDelete({
         _id: id,
         user: userId
