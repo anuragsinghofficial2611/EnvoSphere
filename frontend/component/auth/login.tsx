@@ -18,27 +18,35 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-
-    const response = await fetch('/api/auth/login',{
-      method : "POST",
-      body: JSON.stringify({email,password}),
-      headers:{
-        "Content-type" : "application/json"
+    try{
+      setLoading(true);
+      const response = await fetch('/api/auth/login',{
+        method : "POST",
+        body: JSON.stringify({email,password}),
+        headers:{
+          "Content-type" : "application/json"
+        }
+      });
+      const data = await response.json();
+      if(!response){
+        console.log("error occured in response ",data);
+        return;
       }
-    });
-    const data = await response.json();
-    if(!response){
-      console.log("error occured in response ",data);
-      return;
+      console.log(data);
+      router.push('/user/');
+    }  catch(error){
+      console.log(error);
+
+    }finally{
+      setLoading(false);
     }
-    console.log(data);
-    router.push('/user/');
   }
 
   return (
@@ -207,9 +215,10 @@ export default function LoginPage() {
 
                 <button
                   type="submit"
+                  disabled = {loading}
                   className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-600/20"
                 >
-                  Sign in
+                  {(loading)?"Signing in...":"Sign in"}
                   <ArrowRight size={17} />
                 </button>
               </form>
@@ -217,7 +226,7 @@ export default function LoginPage() {
               <p className="mt-7 text-center text-sm text-slate-500">
                 Don&apos;t have an account?{" "}
                 <Link
-                  href="/register"
+                  href="/auth/register"
                   className="font-semibold text-emerald-700 transition hover:text-emerald-800"
                 >
                   Create an account

@@ -223,7 +223,7 @@ export default function DashboardPage() {
 
                 <div className="mt-3 flex flex-wrap items-baseline gap-x-2">
                   <span className="text-3xl font-semibold tracking-tight text-slate-900">
-                    {stat.value}
+                    {Number(stat.value ?? 0).toFixed(2)}
                   </span>
 
                   {stat.unit && (

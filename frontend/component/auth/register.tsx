@@ -23,6 +23,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading,setLoading] = useState(false);
 
   const router = useRouter();
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -46,7 +47,7 @@ export default function RegisterPage() {
     }
 
     try{
-
+      setLoading(true);
       const response = await fetch('/api/auth/register', {
         method: "POST",
         body: JSON.stringify({ username, email, password }),
@@ -65,6 +66,8 @@ export default function RegisterPage() {
     router.push('/auth/login');
   } catch(error){
     console.log(error);
+  } finally{
+    setLoading(false);
   }
   }
 
@@ -322,9 +325,10 @@ export default function RegisterPage() {
 
                 <button
                   type="submit"
+                  disabled = {loading}
                   className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 px-4 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-600/20"
                 >
-                  Create account
+                  {(loading)?"Creating Account...": "Create account"}
                   <ArrowRight size={17} />
                 </button>
               </form>
