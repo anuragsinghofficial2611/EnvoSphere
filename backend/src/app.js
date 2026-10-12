@@ -5,6 +5,9 @@ import userRoute from './routes/user.routes.js';
 import errorHandler from './middlewares/error.middleware.js';
 import cors from 'cors';
 
+import swaggerSpec from './config/documentation.js';
+import swaggerUi from "swagger-ui-express";
+
 
 const app = express();
 
@@ -17,6 +20,15 @@ app.use(cors(
 
 app.use(express.json());
 
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.get("/",(req,res) => {
+    res.status(200).json(
+        {
+            hello: " welcome to envosphere..."
+        }
+    )
+})
 app.use('/api/v1/auth',authRoute);
 app.use('/api/v1/calculation',calculationRoute);
 app.use('/api/v1/user',userRoute);
