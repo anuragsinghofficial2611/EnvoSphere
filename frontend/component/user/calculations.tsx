@@ -145,10 +145,12 @@ function DetailRow({
 }
 
 export default function CalculationsPage() {
+  
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState("All Time");
   const [selected, setSelected] = useState<Calculation | null>(null);
   const [page, setPage] = useState(1);
+
 
   const pageSize = 5;
 

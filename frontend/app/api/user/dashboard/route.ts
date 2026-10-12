@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
                 status: 401,
             }
         );
-        const response = await fetch(`${process.env.API_URL}/api/v1/calcualtion/dashboard`,{
+        const response = await fetch(`${process.env.API_URL}/api/v1/calculation/dashboard`,{
             method: "GET",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
             cache: "no-store"
         });
         const data = await response.json();
+        console.log(response.url)
 
         return NextResponse.json(
             {

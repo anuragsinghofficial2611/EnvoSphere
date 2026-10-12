@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from 'next/navigation'
 import {
   ArrowRight,
   Eye,
@@ -16,19 +17,20 @@ import {
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const router = useRouter();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    if (name.trim().length < 2) {
+    if (username.trim().length < 2) {
       setError("Please enter your full name.");
       return;
     }
@@ -42,20 +44,28 @@ export default function RegisterPage() {
       setError("Passwords do not match.");
       return;
     }
-    const response = await fetch('/api/auth/register',{
-      method: "POST",
-      body: JSON.stringify({name,email,password}),
-      headers: {
-        "Content-type": "application/json"
-      }
+
+    try{
+
+      const response = await fetch('/api/auth/register', {
+        method: "POST",
+        body: JSON.stringify({ username, email, password }),
+        headers: {
+          "Content-type": "application/json"
+        }
     });
     const data = await response.json();
-    if(!response.ok){
+    if (!response.ok) {
       console.log("error occured in response");
-      setError(data);
+      setError(data.message);
+      console.log(data);
+      return;
     }
-    setError(data);
     console.log(data);
+    router.push('/auth/login');
+  } catch(error){
+    console.log(error);
+  }
   }
 
   return (
@@ -174,8 +184,8 @@ export default function RegisterPage() {
                       placeholder="Enter your full name"
                       required
                       minLength={2}
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       className="h-12 w-full rounded-lg border border-slate-200 bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10"
                     />
                   </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
   Eye,
@@ -17,6 +18,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -35,8 +38,7 @@ export default function LoginPage() {
       return;
     }
     console.log(data);
-    
-    setError("Login API is not connected yet.");
+    router.push('/user/');
   }
 
   return (

@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = req.body;
+    const { username, email, password } = await req.json();
 
-    if (!name || !email || !password) {
+    if (!username || !email || !password) {
       return NextResponse.json(
         { message: "Name, email and password are required" },
         { status: 400 }
@@ -13,13 +13,13 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await fetch(
-      `${process.env.BACKEND_URL}/api/v1/auth/register`,
+      `${process.env.API_URL}/api/v1/auth/register`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ username, email, password }),
         cache: "no-store",
       }
     );

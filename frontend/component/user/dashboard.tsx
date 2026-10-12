@@ -17,102 +17,150 @@ import {
   Sparkles,
   Menu,
 } from "lucide-react";
+import { useState, useEffect } from 'react';
 
-const stats = [
-  {
-    title: "Total CO₂e Emissions",
-    value: "12.4",
-    unit: "tCO₂e",
-    change: "10%",
-    trend: "down",
-    icon: Leaf,
-  },
-  {
-    title: "Energy Consumption",
-    value: "48,320",
-    unit: "kWh",
-    change: "12%",
-    trend: "down",
-    icon: Zap,
-  },
-  {
-    title: "Water Usage",
-    value: "2,180",
-    unit: "m³",
-    change: "9%",
-    trend: "down",
-    icon: Droplets,
-  },
-  {
-    title: "Renewable Energy",
-    value: "62%",
-    unit: "",
-    change: "14%",
-    trend: "up",
-    icon: Trees,
-  },
-];
 
-const calculations = [
-  {
-    id: "CAL-001",
-    date: "Apr 28, 2025",
-    facility: "Data Center A",
-    emissions: "2.8",
-    status: "Completed",
-  },
-  {
-    id: "CAL-002",
-    date: "Apr 25, 2025",
-    facility: "Data Center B",
-    emissions: "4.1",
-    status: "Completed",
-  },
-  {
-    id: "CAL-003",
-    date: "Apr 20, 2025",
-    facility: "Research Lab",
-    emissions: "1.2",
-    status: "Completed",
-  },
-  {
-    id: "CAL-004",
-    date: "Apr 15, 2025",
-    facility: "Main Campus",
-    emissions: "3.6",
-    status: "Completed",
-  },
-];
+
+
 
 const actions = [
   {
     label: "New Calculation",
     description: "Calculate environmental impact",
-    href: "/dashboard/calculations/new",
+    href: "/user/calculator",
     icon: Plus,
     primary: true,
   },
   {
     label: "View All Calculations",
     description: "Review your previous calculations",
-    href: "/dashboard/calculations",
+    href: "/user/calculations",
     icon: ClipboardList,
   },
   {
     label: "Compare Results",
     description: "Compare facility performance",
-    href: "/dashboard/compare",
+    href: "/user/",
     icon: GitCompare,
   },
   {
     label: "Get AI Insights",
     description: "Explore sustainability recommendations",
-    href: "/dashboard/insights",
+    href: "/user/",
     icon: Sparkles,
   },
 ];
 
 export default function DashboardPage() {
+
+  const [co2emmission, setCo2emmission] = useState(0);
+  const [energy, setEnergy] = useState(0);
+  const [waterusage, setWaterusage] = useState(0);
+  const [heat, setHeat] = useState(0);
+
+  const stats = [
+    {
+      title: "Total CO₂e Emissions",
+      value: co2emmission,
+      unit: "kg CO₂e",
+      icon: Leaf,
+    },
+    {
+      title: "Energy Consumption",
+      value: energy,
+      unit: "kWh",
+      icon: Zap,
+    },
+    {
+      title: "Water Usage",
+      value: waterusage,
+      unit: "L",
+      icon: Droplets,
+    },
+    {
+      title: "Total Heat Generated",
+      value: heat,
+      unit: "kWh",
+      icon: Leaf,
+    },
+  ];
+
+  // const calculations = [
+  //   {
+  //     id: "CAL-001",
+  //     date: "Apr 28, 2025",
+  //     facility: "Data Center A",
+  //     emissions: "2.8",
+  //     status: "Completed",
+  //   },
+  //   {
+  //     id: "CAL-002",
+  //     date: "Apr 25, 2025",
+  //     facility: "Data Center B",
+  //     emissions: "4.1",
+  //     status: "Completed",
+  //   },
+  //   {
+  //     id: "CAL-003",
+  //     date: "Apr 20, 2025",
+  //     facility: "Research Lab",
+  //     emissions: "1.2",
+  //     status: "Completed",
+  //   },
+  //   {
+  //     id: "CAL-004",
+  //     date: "Apr 15, 2025",
+  //     facility: "Main Campus",
+  //     emissions: "3.6",
+  //     status: "Completed",
+  //   },
+  // ];
+  const [calculations , setCalculations] = useState([]);
+
+  const getData = async () => {
+    try {
+      const response = await fetch(`/api/user/dashboard`);
+      const data = await response.json();
+      if (!response.ok) {
+        console.log(data);
+        return;
+      }
+      console.log(data);
+      setCo2emmission(data?.data?.data?.totalEmissionsKgCO2e);
+      setEnergy(data?.data.data?.totalEnergyKwh);
+      setWaterusage(data?.data?.data?.totalWaterLiters);
+      setHeat(data?.data?.data?.totalHeatKwh);
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  const getCalculations = async () => {
+    try {
+      const response = await fetch('/api/user/calculation/calculations');
+      const data = await response.json();
+      if (!response.ok) {
+        console.log(data);
+        return;
+      }
+      console.log(data);
+        setCalculations(
+       data.data.map((item: any) => ({
+        id: item._id,
+        date: new Date(item.createdAt).toLocaleDateString("en-IN"),
+        facility: item.inputs.gpuModel,
+        emissions: item.results.co2EmissionsKg.toFixed(2),
+        status: "Completed",
+      }))
+    );
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  useEffect(() => {
+    getData();
+    getCalculations();
+  }, [])
   return (
     <main className="min-h-screen bg-white text-slate-800">
       <div className="mx-auto w-full max-w-[1600px] px-5 py-7 sm:px-8 lg:px-10 lg:py-9">
@@ -302,11 +350,10 @@ export default function DashboardPage() {
                   <Link
                     key={action.label}
                     href={action.href}
-                    className={`group flex items-center gap-3 rounded-lg border px-4 py-3.5 transition duration-200 ${
-                      action.primary
+                    className={`group flex items-center gap-3 rounded-lg border px-4 py-3.5 transition duration-200 ${action.primary
                         ? "border-emerald-800 bg-emerald-800 text-white hover:border-emerald-900 hover:bg-emerald-900"
                         : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40"
-                    }`}
+                      }`}
                   >
                     <Icon
                       size={19}
@@ -322,11 +369,10 @@ export default function DashboardPage() {
                         {action.label}
                       </span>
                       <span
-                        className={`mt-0.5 block text-xs ${
-                          action.primary
+                        className={`mt-0.5 block text-xs ${action.primary
                             ? "text-emerald-100"
                             : "text-slate-400"
-                        }`}
+                          }`}
                       >
                         {action.description}
                       </span>
@@ -334,11 +380,10 @@ export default function DashboardPage() {
 
                     <ArrowRight
                       size={16}
-                      className={`shrink-0 transition-transform group-hover:translate-x-0.5 ${
-                        action.primary
+                      className={`shrink-0 transition-transform group-hover:translate-x-0.5 ${action.primary
                           ? "text-emerald-100"
                           : "text-slate-400"
-                      }`}
+                        }`}
                     />
                   </Link>
                 );
