@@ -3,6 +3,9 @@ import ApiError from "../utils/ApiError.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { generateOtp } from "../services/email.service.js";
+import { hashOtp } from "../services/email.service.js";
+import { sendEmailOtp } from "../services/email.service.js";
 
 const registerUser = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
@@ -16,6 +19,14 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    const otp = generateOtp();
+    const hashedOtp = hashOtp(otp);
+    sendEmailOtp = sendEmailOtp(email,hashedOtp);
+
+    //now save this in db and mark as unverified
+
+
 
     const user = await User.create({
         username,

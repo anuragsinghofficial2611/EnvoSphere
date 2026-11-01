@@ -19,6 +19,16 @@ export default function ProfilePage() {
     createdAt: "October 11, 2026",
   };
 
+  const getUser = async() => {
+    try{
+      const response = await fetch('/api/user/profile');
+      const data = await response.json();
+      console.log(data);
+    } catch(error){
+      // console.log(error);
+    }
+  }
+
   const stats = [
     {
       title: "Environmental Impact",
